@@ -1,6 +1,8 @@
 databases_package = "./databases.star"
 aptos_package = "./aptos.star"
 input_parser = "./input_parser.star"
+madara_package = "./madara.star"
+explorer_package = "./explorer.star"
 
 # Additional services packages.
 grafana_package = "./src/additional_services/grafana.star"
@@ -11,6 +13,8 @@ def run(
     plan,
     deploy_aptos=True,
     deploy_databases=True,
+    deploy_madara=True,
+    enable_explorer=True,
     args={},
 ):
     args = import_module(input_parser).parse_args(args)
@@ -28,25 +32,37 @@ def run(
     else:
         plan.print("Skipping the deployment of a local Aptos")
 
-    # Deploy databases.
-    if deploy_databases:
+    # Deploy Madara
+    if deploy_madara:
+        plan.print("Deploying Madara")
+        import_module(madara_package).run(
+            plan,
+            suffix=args["deployment_suffix"]
+        )
+
+    # Deploy Explorer
+    if enable_explorer:
         plan.print("Deploying databases")
         import_module(databases_package).run(
             plan,
             suffix=args["deployment_suffix"],
         )
-    else:
-        plan.print("Skipping the deployment of databases")
+
+        plan.print("Deploying Explorer")
+        import_module(explorer_package).run(
+            plan,
+            suffix=args["deployment_suffix"],
+        )
 
     # Launching additional services.
-    additional_services = args["additional_services"]
+    # additional_services = args["additional_services"]
 
-    for index, additional_service in enumerate(additional_services):
-        if additional_service == "prometheus_grafana":
-            deploy_additional_service(plan, "prometheus", prometheus_package, args)
-            deploy_additional_service(plan, "grafana", grafana_package, args)
-        else:
-            fail("Invalid additional service: %s" % (additional_service))
+    # for index, additional_service in enumerate(additional_services):
+    #     if additional_service == "prometheus_grafana":
+    #         deploy_additional_service(plan, "prometheus", prometheus_package, args)
+    #         deploy_additional_service(plan, "grafana", grafana_package, args)
+    #     else:
+    #         fail("Invalid additional service: %s" % (additional_service))
 
 
 def deploy_additional_service(plan, name, package, args):

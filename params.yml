@@ -5,6 +5,8 @@
 # Deploy local Aptos.
 deploy_aptos: true
 deploy_databases: true
+deploy_madara: True
+enable_explorer: True
 
 args:
   # Suffix appended to service names.
